@@ -6,17 +6,17 @@ on:
 
 jobs:
   build_and_push:
+    # Setting the gcr repo name for the image as it will be pushed in the gcr
+    name: Setup Gcloud Account
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
+
     steps:
 
     # Checking out the Github code in the build pipeline
     - name: Checkout repository
       uses: actions/checkout@v2
-
-    # Setting the gcr repo name for the image as it will be pushed in the gcr
-    - name: Setup Gcloud Account
-      runs-on: ubuntu-latest
-      env:
-        IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
 
     # Performing the Google Login via service account credentials
     - name: Login
