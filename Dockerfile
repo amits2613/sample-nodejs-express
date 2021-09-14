@@ -17,3 +17,4 @@ COPY . .
 
 # Skipping the docker CMD instruction as that can be passed dynamically
 
+CMD ["node", "app.js"]
