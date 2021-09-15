@@ -37,3 +37,11 @@ jobs:
     # Pushing the docker image in the GCR with name and the tag
     - name: Push Docker image
       run: docker push $IMAGE_NAME
+    # REPO dispatch to the kubernetes config repo
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.GIT_ACCESS_TOKEN }}
+        event-type: poc
+        repository: campuskudos/kubernetes-config
+        client-payload: '{"demo": "testing"}'
