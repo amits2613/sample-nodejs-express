@@ -44,4 +44,4 @@ jobs:
         token: ${{ secrets.GIT_ACCESS_TOKEN }}
         event-type: poc
         repository: campuskudos/kubernetes-config
-        client-payload: '{"demo": "testing", "ref": "amit-helm-config"}'
+        client-payload: '{"demo": "testing", "ref": "amit-helm-config", "appVersion": "${{ github.run_id }}"}'
