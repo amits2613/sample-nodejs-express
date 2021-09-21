@@ -1,3 +1,4 @@
+// Testing comments
 (function add() {
 	const x = 1;
 	const y = 2;
