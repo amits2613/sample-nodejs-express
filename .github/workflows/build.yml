@@ -1,8 +1,8 @@
-name: Docker
+name: API Build & Deploy Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, vidit/feature/api-github-action ]
 
 jobs:
   build_and_push:
@@ -10,38 +10,74 @@ jobs:
     name: Setup Gcloud Account
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
+      IMAGE_NAME: gcr.io/${{ env.DEV.GCP_PROJECT_ID }}/${{ env.DEV.GCP_APP_NAME }}
 
     steps:
+      # Checking out the Github Repository inside the build pipeline
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    # Checking out the Github code in the build pipeline
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      # Performing the Google Login via service account credentials
+      # Google authentication is required for Docker building & pushing to GCR
+      - name: GCP Authentication
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ env.DEV.GCP_PROJECT_ID }}
+          #service_account_email: ${{ secrets.GCP_EMAIL }}
+          service_account_key: ${{ secrets.DEV.GCP_CREDENTIALS }}
+          export_default_credentials: true
 
-    # Performing the Google Login via service account credentials
-    - name: Login
-      uses: google-github-actions/setup-gcloud@master
-      with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        service_account_email: ${{ secrets.GCP_EMAIL }}
-        service_account_key: ${{ secrets.GCP_CREDENTIALS }}
-        export_default_credentials: true
+      # Doing explicit login for the docker / gcr service
+      - name: Configure Docker
+        run: gcloud auth configure-docker --quiet
+      
+      # need to get the last imageTag , it will be used in pulling that docker image
+      # so as to use the docker build --cache-from flag , else everytime the docker build
+      # will happen from scratch
+      - name: Download a appImage tag artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: app-image-artifact
 
-    # Doing explicit login for the docker / gcr service
-    - name: Configure Docker
-      run: gcloud auth configure-docker --quiet
-    
-    # Doing the docker build with the image name specified above
-    - name: Build Docker image
-      run: docker build . -t $IMAGE_NAME
-    # Pushing the docker image in the GCR with name and the tag
-    - name: Push Docker image
-      run: docker push $IMAGE_NAME
-    # REPO dispatch to the kubernetes config repo
-    - name: Repository Dispatch
-      uses: peter-evans/repository-dispatch@v1
-      with:
-        token: ${{ secrets.GIT_ACCESS_TOKEN }} ## 
-        event-type: poc
-        repository: campuskudos/kubernetes-config
-        client-payload: '{"demo": "testing", "ref": "amit-helm-config", "appVersion": "${{ github.run_id }}"}'
+      - name: Extracting the last build app image tag
+        run: |
+          sudo apt-get update && sudo apt-get install jq
+          lastBuildTag=`jq '.imageTag' app-image-artifact.json`
+
+          if [ -z "$lastBuildTag" ]; then lastBuildTag=latest; else echo "fOUND THE LAST BUILT IMAGE TAG: $lastBuildTag"; fi
+
+          echo "::set-env name=lastBuildTag::$lastBuildTag"
+
+      # Pull the docker before hand to utilise the benefit of caching
+      - name: Pulling the application docker
+        run: docker pull $IMAGE_NAME:$lastBuildTag
+
+      # Doing the docker build with the image name specified above # --build-arg COMMIT_SHA=$COMMIT_SHA
+      - name: Build Docker image
+        run: docker build  -t $IMAGE_NAME:${{ github.run_id }}  --cache-from $IMAGE_NAME:$lastBuildTag .
+
+      # Pushing the docker image in the GCR with name and the tag
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:${{ github.run_id }}
+
+          echo {\"imageTag\" : ${{ github.run_id }} } > app-image-artifact.json
+          
+          cat app-image-artifact.json
+      
+      # Saving the name of the current app docker image build tag in the artifacts back
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-image-artifact
+          path: app-image-artifact.json
+          retention-days: 90
+
+      # REPO dispatch to the kubernetes config repo
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          event-type: poc
+          repository: campuskudos/kubernetes-config
+          client-payload: '{"ref": "amit-helm-config", "appImage": "${{ github.run_id }}"}'
