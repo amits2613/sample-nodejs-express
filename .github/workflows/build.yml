@@ -9,8 +9,13 @@ jobs:
     # Setting the gcr repo name for the image as it will be pushed in the gcr
     name: Setup Gcloud Account
     runs-on: ubuntu-latest
+    environment: DEV
     env:
-      IMAGE_NAME: gcr.io/${{ env.DEV.GCP_PROJECT_ID }}/${{ env.DEV.GCP_APP_NAME }}
+      GCP_PROJ_ID: ${{ secrets.GCP_PROJECT_ID }}
+      APP_NAME: ${{ secrets.GCP_APP_NAME }}
+      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      WF_RUN_ID: ${{ github.run_id }}
+      IMAGE_NAME: gcr.io/$GCP_PROJ_ID/$APP_NAME
 
     steps:
       # Checking out the Github Repository inside the build pipeline
@@ -22,9 +27,9 @@ jobs:
       - name: GCP Authentication
         uses: google-github-actions/setup-gcloud@master
         with:
-          project_id: ${{ env.DEV.GCP_PROJECT_ID }}
+          project_id: $GCP_PROJ_ID
           #service_account_email: ${{ secrets.GCP_EMAIL }}
-          service_account_key: ${{ secrets.DEV.GCP_CREDENTIALS }}
+          service_account_key: $GCP_CREDENTIALS
           export_default_credentials: true
 
       # Doing explicit login for the docker / gcr service
@@ -54,14 +59,14 @@ jobs:
 
       # Doing the docker build with the image name specified above # --build-arg COMMIT_SHA=$COMMIT_SHA
       - name: Build Docker image
-        run: docker build  -t $IMAGE_NAME:${{ github.run_id }}  --cache-from $IMAGE_NAME:$lastBuildTag .
+        run: docker build  -t $IMAGE_NAME:$WF_RUN_ID  --cache-from $IMAGE_NAME:$lastBuildTag .
 
       # Pushing the docker image in the GCR with name and the tag
       - name: Push Docker image
         run: |
-          docker push $IMAGE_NAME:${{ github.run_id }}
+          docker push $IMAGE_NAME:$WF_RUN_ID
 
-          echo {\"imageTag\" : ${{ github.run_id }} } > app-image-artifact.json
+          echo {\"imageTag\" : $WF_RUN_ID } > app-image-artifact.json
           
           cat app-image-artifact.json
       
@@ -80,4 +85,4 @@ jobs:
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
           event-type: poc
           repository: campuskudos/kubernetes-config
-          client-payload: '{"ref": "amit-helm-config", "appImage": "${{ github.run_id }}"}'
+          client-payload: '{"ref": "amit-helm-config", "appImage": "$WF_RUN_ID"}'
