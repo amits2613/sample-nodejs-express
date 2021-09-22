@@ -8,7 +8,7 @@ jobs:
   build_and_push:
     # Setting the gcr repo name for the image as it will be pushed in the gcr
     name: Application Image Build / Push
-    runs-on: ubuntu-latest
+    runs-on: alpine
     environment: DEV
     env:
       GCP_PROJ_ID: ${{ secrets.GCP_PROJECT_ID }}
