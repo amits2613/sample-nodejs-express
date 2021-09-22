@@ -27,9 +27,9 @@ jobs:
       - name: GCP Authentication
         uses: google-github-actions/setup-gcloud@master
         with:
-          project_id: "$GCP_PROJ_ID"
+          project_id: ${{ env.GCP_PROJ_ID }}
           #service_account_email: ${{ secrets.GCP_EMAIL }}
-          service_account_key: "$GCP_CREDENTIALS"
+          service_account_key: ${{ env.GCP_CREDENTIALS }}
           export_default_credentials: true
 
       # Doing explicit login for the docker / gcr service
@@ -64,9 +64,9 @@ jobs:
       # Pushing the docker image in the GCR with name and the tag
       - name: Push Docker image
         run: |
-          docker push $IMAGE_NAME:$WF_RUN_ID
+          docker push $IMAGE_NAME:${{ env.WF_RUN_ID }}
 
-          echo {\"imageTag\" : $WF_RUN_ID } > app-image-artifact.json
+          echo {\"imageTag\" : ${{ env.WF_RUN_ID }} } > app-image-artifact.json
           
           cat app-image-artifact.json
       
@@ -85,4 +85,4 @@ jobs:
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
           event-type: poc
           repository: campuskudos/kubernetes-config
-          client-payload: '{"ref": "amit-helm-config", "appImage": "$WF_RUN_ID"}'
+          client-payload: '{"ref": "amit-helm-config", "appImage": "${{ env.WF_RUN_ID }}"}'
