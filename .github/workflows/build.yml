@@ -7,7 +7,7 @@ on:
 jobs:
   build_and_push:
     # Setting the gcr repo name for the image as it will be pushed in the gcr
-    name: Setup Gcloud Account
+    name: Application Image Build / Push
     runs-on: ubuntu-latest
     environment: DEV
     env:
@@ -27,9 +27,9 @@ jobs:
       - name: GCP Authentication
         uses: google-github-actions/setup-gcloud@master
         with:
-          project_id: $GCP_PROJ_ID
+          project_id: ${{ GCP_PROJ_ID }}
           #service_account_email: ${{ secrets.GCP_EMAIL }}
-          service_account_key: $GCP_CREDENTIALS
+          service_account_key: ${{ GCP_CREDENTIALS }}
           export_default_credentials: true
 
       # Doing explicit login for the docker / gcr service
