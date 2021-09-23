@@ -27,9 +27,8 @@
  app.listen(port, () => {
  
    // ready for listening to the connections
- 
    // Server start notification
-   console.log('Output 1');
+   console.log('Output 1 v2');
    console.log(`Local Server listening at http://localhost:${port} .. Waiting to listen (4).....`);
 
    setTimeout(function(){ console.log("Hello 43"); }, 300000);
