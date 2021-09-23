@@ -11,7 +11,7 @@
 
  // Explicitly setting the port to be use
  const port1 = 4488
- const port = process.env.port;
+//  const port = process.env.port;
  
  // Using cors library to enable the HTTP Requests on localhost:4488 from another localhost:xxxx port
  // By default browser blocks request from different ports even if the domain is same
@@ -28,9 +28,9 @@
  
    // ready for listening to the connections
    // Server start notification
-   console.log('Output 1 v2');
+   console.log('Output 1 v3');
    console.log(`Local Server listening at http://localhost:${port1} .. Waiting to listen (4).....`);
 
-   setTimeout(function(){ console.log("Port read from configmap - ", port); }, 300000);
+   setTimeout(function(){ console.log("Port read from configmap - ", process.env.port); }, 180000);
 
  });
