@@ -10,7 +10,8 @@
  var cors = require('cors')
 
  // Explicitly setting the port to be use
- const port = 4488
+//  const port = 4488
+ const port = process.env.port;
  
  // Using cors library to enable the HTTP Requests on localhost:4488 from another localhost:xxxx port
  // By default browser blocks request from different ports even if the domain is same
