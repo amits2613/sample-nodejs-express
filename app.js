@@ -10,7 +10,7 @@
  var cors = require('cors')
 
  // Explicitly setting the port to be use
-//  const port = 4488
+ const port1 = 4488
  const port = process.env.port;
  
  // Using cors library to enable the HTTP Requests on localhost:4488 from another localhost:xxxx port
@@ -24,13 +24,13 @@
  })
  
  
- app.listen(port, () => {
+ app.listen(port1, () => {
  
    // ready for listening to the connections
    // Server start notification
    console.log('Output 1 v2');
-   console.log(`Local Server listening at http://localhost:${port} .. Waiting to listen (4).....`);
+   console.log(`Local Server listening at http://localhost:${port1} .. Waiting to listen (4).....`);
 
-   setTimeout(function(){ console.log("Hello 43"); }, 300000);
+   setTimeout(function(){ console.log("Port read from configmap - ", port); }, 300000);
 
  });
