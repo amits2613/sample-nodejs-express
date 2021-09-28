@@ -31,6 +31,6 @@
    console.log('Output 1 v3');
    console.log(`Local Server listening at http://localhost:${port1} .. Waiting to listen (4).....`);
 
-   setTimeout(function(){ console.log("Port read from configmap - ", process.env.port); }, 180000);
+   setTimeout(function(){ console.log("Port read from configmap - ", process.env.port); }, 100000);
 
  });
